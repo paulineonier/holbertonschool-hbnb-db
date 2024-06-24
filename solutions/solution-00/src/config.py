@@ -19,8 +19,8 @@ class Config(ABC):
 
     DEBUG = False
     TESTING = False
-
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    USE_DATABASE = False
 
 
 class DevelopmentConfig(Config):
@@ -72,8 +72,15 @@ class ProductionConfig(Config):
 
     TESTING = False
     DEBUG = False
-
     SQLALCHEMY_DATABASE_URI = os.getenv(
         "DATABASE_URL",
         "postgresql://user:password@localhost/hbnb_prod"
     )
+
+
+# Configuration spécifique à SQLAlchemy
+class SQLAlchemyConfig(Config):
+    """
+    Configuration spécifique à SQLAlchemy
+    """
+    USE_DATABASE = True

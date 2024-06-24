@@ -2,24 +2,30 @@
 Review related functionality
 """
 
-from src.models.base import Base
-from src.models.place import Place
+from src import db  # Importez db depuis votre package source
 from src.models.user import User
+from src.models.place import Place
 
 
-class Review(Base):
+class Review(db.Model):
     """Review representation"""
 
-    place_id: str
-    user_id: str
-    comment: str
-    rating: float
+    __tablename__ = 'reviews'  # Nom de la table dans la base de données
 
-    def __init__(
-        self, place_id: str, user_id: str, comment: str, rating: float, **kw
-    ) -> None:
-        """Dummy init"""
-        super().__init__(**kw)
+    id = db.Column(db.String(36), primary_key=True)
+    place_id = db.Column(db.String(36), db.ForeignKey('places.id'), nullable=False)
+    user_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    comment = db.Column(db.Text, nullable=False)
+    rating = db.Column(db.Float, nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
+
+    user = db.relationship('User', backref=db.backref('reviews', lazy=True))
+    place = db.relationship('Place', backref=db.backref('reviews', lazy=True))
+
+    def __init__(self, place_id: str, user_id: str, comment: str, rating: float, **kwargs) -> None:
+        """Initialisation d'une critique"""
+        super().__init__(**kwargs)
 
         self.place_id = place_id
         self.user_id = user_id
@@ -27,11 +33,11 @@ class Review(Base):
         self.rating = rating
 
     def __repr__(self) -> str:
-        """Dummy repr"""
+        """Représentation sous forme de chaîne de la critique"""
         return f"<Review {self.id} - '{self.comment[:25]}...'>"
 
     def to_dict(self) -> dict:
-        """Dictionary representation of the object"""
+        """Retourne la représentation de l'objet sous forme de dictionnaire"""
         return {
             "id": self.id,
             "place_id": self.place_id,
@@ -44,38 +50,25 @@ class Review(Base):
 
     @staticmethod
     def create(data: dict) -> "Review":
-        """Create a new review"""
-        from src.persistence import repo
-
-        user: User | None = User.get(data["user_id"])
-
-        if not user:
-            raise ValueError(f"User with ID {data['user_id']} not found")
-
-        place: Place | None = Place.get(data["place_id"])
-
-        if not place:
-            raise ValueError(f"Place with ID {data['place_id']} not found")
-
+        """Crée une nouvelle critique"""
         new_review = Review(**data)
 
-        repo.save(new_review)
+        db.session.add(new_review)
+        db.session.commit()
 
         return new_review
 
     @staticmethod
     def update(review_id: str, data: dict) -> "Review | None":
-        """Update an existing review"""
-        from src.persistence import repo
-
-        review = Review.get(review_id)
+        """Met à jour une critique existante"""
+        review = Review.query.get(review_id)
 
         if not review:
-            raise ValueError("Review not found")
+            return None
 
         for key, value in data.items():
             setattr(review, key, value)
 
-        repo.update(review)
+        db.session.commit()
 
         return review

@@ -2,51 +2,59 @@
 Place related functionality
 """
 
-from src.models.base import Base
+from src import db  # Importez db depuis votre package source
 from src.models.city import City
 from src.models.user import User
 
 
-class Place(Base):
+class Place(db.Model):
     """Place representation"""
 
-    name: str
-    description: str
-    address: str
-    latitude: float
-    longitude: float
-    host_id: str
-    city_id: str
-    price_per_night: int
-    number_of_rooms: int
-    number_of_bathrooms: int
-    max_guests: int
+    __tablename__ = 'places'  # Nom de la table dans la base de données
 
-    def __init__(self, data: dict | None = None, **kw) -> None:
-        """Dummy init"""
-        super().__init__(**kw)
+    id = db.Column(db.String(36), primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    address = db.Column(db.String(255), nullable=False)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    host_id = db.Column(db.String(36), db.ForeignKey('users.id'), nullable=False)
+    city_id = db.Column(db.String(36), db.ForeignKey('cities.id'), nullable=False)
+    price_per_night = db.Column(db.Integer, nullable=False)
+    number_of_rooms = db.Column(db.Integer, nullable=False)
+    number_of_bathrooms = db.Column(db.Integer, nullable=False)
+    max_guests = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
 
-        if not data:
+    city = db.relationship('City', backref=db.backref('places', lazy=True))
+    host = db.relationship('User', backref=db.backref('places', lazy=True))
+
+    def __init__(self, data: dict | None = None, **kwargs) -> None:
+        """Initialisation d'un lieu"""
+        super().__init__(**kwargs)
+
+        if data is None:
             return
 
         self.name = data.get("name", "")
         self.description = data.get("description", "")
         self.address = data.get("address", "")
-        self.city_id = data["city_id"]
         self.latitude = float(data.get("latitude", 0.0))
         self.longitude = float(data.get("longitude", 0.0))
         self.host_id = data["host_id"]
+        self.city_id = data["city_id"]
         self.price_per_night = int(data.get("price_per_night", 0))
         self.number_of_rooms = int(data.get("number_of_rooms", 0))
         self.number_of_bathrooms = int(data.get("number_of_bathrooms", 0))
         self.max_guests = int(data.get("max_guests", 0))
 
     def __repr__(self) -> str:
-        """Dummy repr"""
+        """Représentation sous forme de chaîne du lieu"""
         return f"<Place {self.id} ({self.name})>"
 
     def to_dict(self) -> dict:
-        """Dictionary representation of the object"""
+        """Retourne la représentation de l'objet sous forme de dictionnaire"""
         return {
             "id": self.id,
             "name": self.name,
@@ -66,31 +74,18 @@ class Place(Base):
 
     @staticmethod
     def create(data: dict) -> "Place":
-        """Create a new place"""
-        from src.persistence import repo
-
-        user: User | None = User.get(data["host_id"])
-
-        if not user:
-            raise ValueError(f"User with ID {data['host_id']} not found")
-
-        city: City | None = City.get(data["city_id"])
-
-        if not city:
-            raise ValueError(f"City with ID {data['city_id']} not found")
-
+        """Crée un nouveau lieu"""
         new_place = Place(data=data)
 
-        repo.save(new_place)
+        db.session.add(new_place)
+        db.session.commit()
 
         return new_place
 
     @staticmethod
     def update(place_id: str, data: dict) -> "Place | None":
-        """Update an existing place"""
-        from src.persistence import repo
-
-        place: Place | None = Place.get(place_id)
+        """Met à jour un lieu existant"""
+        place = Place.query.get(place_id)
 
         if not place:
             return None
@@ -98,6 +93,6 @@ class Place(Base):
         for key, value in data.items():
             setattr(place, key, value)
 
-        repo.update(place)
+        db.session.commit()
 
         return place

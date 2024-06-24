@@ -2,6 +2,7 @@
 City related functionality
 """
 
+from src import db  # Importez db depuis votre package source
 from src.models.base import Base
 from src.models.country import Country
 
@@ -9,22 +10,27 @@ from src.models.country import Country
 class City(Base):
     """City representation"""
 
-    name: str
-    country_code: str
+    __tablename__ = 'cities'  # Nom de la table dans la base de données
+
+    name = db.Column(db.String(128), nullable=False)
+    country_code = db.Column(db.String(2), db.ForeignKey('countries.code'), nullable=False)
+
+    # Définissez la relation avec Country si nécessaire
+    country = db.relationship('Country', backref='cities')
 
     def __init__(self, name: str, country_code: str, **kw) -> None:
-        """Dummy init"""
+        """Initialisation d'une ville"""
         super().__init__(**kw)
 
         self.name = name
         self.country_code = country_code
 
     def __repr__(self) -> str:
-        """Dummy repr"""
+        """Représentation sous forme de chaîne de la ville"""
         return f"<City {self.id} ({self.name})>"
 
     def to_dict(self) -> dict:
-        """Dictionary representation of the object"""
+        """Retourne la représentation de l'objet sous forme de dictionnaire"""
         return {
             "id": self.id,
             "name": self.name,
@@ -35,26 +41,23 @@ class City(Base):
 
     @staticmethod
     def create(data: dict) -> "City":
-        """Create a new city"""
-        from src.persistence import repo
-
-        country = Country.get(data["country_code"])
+        """Crée une nouvelle ville"""
+        country = Country.query.filter_by(code=data["country_code"]).first()
 
         if not country:
             raise ValueError("Country not found")
 
         city = City(**data)
 
-        repo.save(city)
+        db.session.add(city)
+        db.session.commit()
 
         return city
 
     @staticmethod
     def update(city_id: str, data: dict) -> "City":
-        """Update an existing city"""
-        from src.persistence import repo
-
-        city = City.get(city_id)
+        """Met à jour une ville existante"""
+        city = City.query.get(city_id)
 
         if not city:
             raise ValueError("City not found")
@@ -62,6 +65,6 @@ class City(Base):
         for key, value in data.items():
             setattr(city, key, value)
 
-        repo.update(city)
+        db.session.commit()
 
         return city

@@ -2,29 +2,36 @@
 User related functionality
 """
 
-from src.models.base import Base
+from src import db  
+# Importez db depuis votre package source
 
 
-class User(Base):
+class User(db.Model):
     """User representation"""
 
-    email: str
-    first_name: str
-    last_name: str
+    __tablename__ = 'users'  
+    # Nom de la table dans la base de données
 
-    def __init__(self, email: str, first_name: str, last_name: str, **kw):
-        """Dummy init"""
-        super().__init__(**kw)
+    id = db.Column(db.String(36), primary_key=True)
+    email = db.Column(db.String(255), unique=True, nullable=False)
+    first_name = db.Column(db.String(100), nullable=False)
+    last_name = db.Column(db.String(100), nullable=False)
+    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    updated_at = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
+
+    def __init__(self, email: str, first_name: str, last_name: str, **kwargs):
+        """Initialisation d'un utilisateur"""
+        super().__init__(**kwargs)
         self.email = email
         self.first_name = first_name
         self.last_name = last_name
 
     def __repr__(self) -> str:
-        """Dummy repr"""
+        """Représentation sous forme de chaîne de l'utilisateur"""
         return f"<User {self.id} ({self.email})>"
 
     def to_dict(self) -> dict:
-        """Dictionary representation of the object"""
+        """Retourne la représentation de l'objet sous forme de dictionnaire"""
         return {
             "id": self.id,
             "email": self.email,
@@ -35,28 +42,19 @@ class User(Base):
         }
 
     @staticmethod
-    def create(user: dict) -> "User":
-        """Create a new user"""
-        from src.persistence import repo
+    def create(user_data: dict) -> "User":
+        """Crée un nouvel utilisateur"""
+        new_user = User(**user_data)
 
-        users: list["User"] = User.get_all()
-
-        for u in users:
-            if u.email == user["email"]:
-                raise ValueError("User already exists")
-
-        new_user = User(**user)
-
-        repo.save(new_user)
+        db.session.add(new_user)
+        db.session.commit()
 
         return new_user
 
     @staticmethod
     def update(user_id: str, data: dict) -> "User | None":
-        """Update an existing user"""
-        from src.persistence import repo
-
-        user: User | None = User.get(user_id)
+        """Met à jour un utilisateur existant"""
+        user = User.query.get(user_id)
 
         if not user:
             return None
@@ -68,6 +66,6 @@ class User(Base):
         if "last_name" in data:
             user.last_name = data["last_name"]
 
-        repo.update(user)
+        db.session.commit()
 
         return user
