@@ -38,11 +38,9 @@ class DevelopmentConfig(Config):
         # Do something
     ```
     """
-
-    SQLALCHEMY_DATABASE_URI = os.getenv(
-        "DATABASE_URL", "sqlite:///hbnb_dev.db")
-    DEBUG = True
-
+     DEBUG = True
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///development.db'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 class TestingConfig(Config):
     """
@@ -59,7 +57,6 @@ class TestingConfig(Config):
     ```
 
     """
-
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
 
