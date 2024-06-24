@@ -1,3 +1,7 @@
+"""
+This module contains the routes for the reviews blueprint
+"""
+
 from flask import Blueprint
 from src.controllers.reviews import (
     create_review,

@@ -1,12 +1,14 @@
+"""
+Place related functionality
+"""
+
 from src.models.base import Base
 from src.models.city import City
 from src.models.user import User
 
 
 class Place(Base):
-    """Place:
-    amenity_ids (List of UUIDs referencing Amenities),
-    """
+    """Place representation"""
 
     name: str
     description: str
@@ -21,6 +23,7 @@ class Place(Base):
     max_guests: int
 
     def __init__(self, data: dict | None = None, **kw) -> None:
+        """Dummy init"""
         super().__init__(**kw)
 
         if not data:
@@ -39,9 +42,11 @@ class Place(Base):
         self.max_guests = int(data.get("max_guests", 0))
 
     def __repr__(self) -> str:
+        """Dummy repr"""
         return f"<Place {self.id} ({self.name})>"
 
     def to_dict(self) -> dict:
+        """Dictionary representation of the object"""
         return {
             "id": self.id,
             "name": self.name,
@@ -61,7 +66,8 @@ class Place(Base):
 
     @staticmethod
     def create(data: dict) -> "Place":
-        from src.persistence import db
+        """Create a new place"""
+        from src.persistence import repo
 
         user: User | None = User.get(data["host_id"])
 
@@ -75,13 +81,14 @@ class Place(Base):
 
         new_place = Place(data=data)
 
-        db.save(new_place)
+        repo.save(new_place)
 
         return new_place
 
     @staticmethod
     def update(place_id: str, data: dict) -> "Place | None":
-        from src.persistence import db
+        """Update an existing place"""
+        from src.persistence import repo
 
         place: Place | None = Place.get(place_id)
 
@@ -91,6 +98,6 @@ class Place(Base):
         for key, value in data.items():
             setattr(place, key, value)
 
-        db.update(place)
+        repo.update(place)
 
         return place

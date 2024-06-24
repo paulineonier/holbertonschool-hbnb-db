@@ -1,3 +1,5 @@
+""" Entry point for the application. """
+
 from flask.cli import FlaskGroup
 from src import create_app
 

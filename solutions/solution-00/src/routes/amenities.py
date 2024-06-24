@@ -1,3 +1,7 @@
+"""
+This module contains the routes for the amenities blueprint
+"""
+
 from flask import Blueprint
 from src.controllers.amenities import (
     create_amenity,

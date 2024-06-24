@@ -1,13 +1,16 @@
-FROM python:3.10-slim
+FROM python:3.12.3-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY requirements.txt /tmp/requirements.txt
 
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt \
+  && rm -rf /tmp
 
 COPY . .
 
-EXPOSE 5000
+ENV PORT 5000
 
-CMD "gunicorn" "hbnb:app" "-b" "0.0.0.0:5000"
+EXPOSE $PORT
+
+CMD gunicorn hbnb:app -w 2 -b 0.0.0.0:$PORT

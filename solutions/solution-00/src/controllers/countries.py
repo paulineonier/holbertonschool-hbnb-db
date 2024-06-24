@@ -1,16 +1,21 @@
+"""
+Countries controller module
+"""
+
 from flask import abort
-from ..models.base import Base
 from src.models.city import City
 from src.models.country import Country
 
 
 def get_countries():
+    """Returns all countries"""
     countries: list[Country] = Country.get_all()
 
     return [country.to_dict() for country in countries]
 
 
 def get_country_by_code(code: str):
+    """Returns a country by code"""
     country: Country | None = Country.get(code)
 
     if not country:
@@ -20,6 +25,7 @@ def get_country_by_code(code: str):
 
 
 def get_country_cities(code: str):
+    """Returns all cities for a specific country by code"""
     country: Country | None = Country.get(code)
 
     if not country:

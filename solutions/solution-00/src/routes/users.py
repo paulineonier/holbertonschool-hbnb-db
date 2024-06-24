@@ -1,3 +1,7 @@
+"""
+This module contains the routes for the users endpoints.
+"""
+
 from flask import Blueprint
 from src.controllers.users import (
     create_user,

@@ -1,3 +1,7 @@
+"""
+This module contains the routes for the places blueprint
+"""
+
 from flask import Blueprint
 from src.controllers.places import (
     create_place,

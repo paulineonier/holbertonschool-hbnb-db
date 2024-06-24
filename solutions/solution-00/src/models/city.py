@@ -1,21 +1,30 @@
+"""
+City related functionality
+"""
+
 from src.models.base import Base
 from src.models.country import Country
 
 
 class City(Base):
+    """City representation"""
+
     name: str
     country_code: str
 
     def __init__(self, name: str, country_code: str, **kw) -> None:
+        """Dummy init"""
         super().__init__(**kw)
 
         self.name = name
         self.country_code = country_code
 
     def __repr__(self) -> str:
+        """Dummy repr"""
         return f"<City {self.id} ({self.name})>"
 
     def to_dict(self) -> dict:
+        """Dictionary representation of the object"""
         return {
             "id": self.id,
             "name": self.name,
@@ -26,7 +35,8 @@ class City(Base):
 
     @staticmethod
     def create(data: dict) -> "City":
-        from src.persistence import db
+        """Create a new city"""
+        from src.persistence import repo
 
         country = Country.get(data["country_code"])
 
@@ -35,13 +45,14 @@ class City(Base):
 
         city = City(**data)
 
-        db.save(city)
+        repo.save(city)
 
         return city
 
     @staticmethod
     def update(city_id: str, data: dict) -> "City":
-        from src.persistence import db
+        """Update an existing city"""
+        from src.persistence import repo
 
         city = City.get(city_id)
 
@@ -51,6 +62,6 @@ class City(Base):
         for key, value in data.items():
             setattr(city, key, value)
 
-        db.update(city)
+        repo.update(city)
 
         return city

@@ -1,9 +1,15 @@
+"""
+Review related functionality
+"""
+
 from src.models.base import Base
 from src.models.place import Place
 from src.models.user import User
 
 
 class Review(Base):
+    """Review representation"""
+
     place_id: str
     user_id: str
     comment: str
@@ -12,6 +18,7 @@ class Review(Base):
     def __init__(
         self, place_id: str, user_id: str, comment: str, rating: float, **kw
     ) -> None:
+        """Dummy init"""
         super().__init__(**kw)
 
         self.place_id = place_id
@@ -20,9 +27,11 @@ class Review(Base):
         self.rating = rating
 
     def __repr__(self) -> str:
+        """Dummy repr"""
         return f"<Review {self.id} - '{self.comment[:25]}...'>"
 
     def to_dict(self) -> dict:
+        """Dictionary representation of the object"""
         return {
             "id": self.id,
             "place_id": self.place_id,
@@ -35,7 +44,8 @@ class Review(Base):
 
     @staticmethod
     def create(data: dict) -> "Review":
-        from src.persistence import db
+        """Create a new review"""
+        from src.persistence import repo
 
         user: User | None = User.get(data["user_id"])
 
@@ -49,13 +59,14 @@ class Review(Base):
 
         new_review = Review(**data)
 
-        db.save(new_review)
+        repo.save(new_review)
 
         return new_review
 
     @staticmethod
     def update(review_id: str, data: dict) -> "Review | None":
-        from src.persistence import db
+        """Update an existing review"""
+        from src.persistence import repo
 
         review = Review.get(review_id)
 
@@ -65,6 +76,6 @@ class Review(Base):
         for key, value in data.items():
             setattr(review, key, value)
 
-        db.update(review)
+        repo.update(review)
 
         return review

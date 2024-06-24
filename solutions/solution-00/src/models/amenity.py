@@ -1,18 +1,27 @@
+"""
+Amenity related functionality
+"""
+
 from src.models.base import Base
 
 
 class Amenity(Base):
+    """Amenity representation"""
+
     name: str
 
     def __init__(self, name: str, **kw) -> None:
+        """Dummy init"""
         super().__init__(**kw)
 
         self.name = name
 
     def __repr__(self) -> str:
+        """Dummy repr"""
         return f"<Amenity {self.id} ({self.name})>"
 
     def to_dict(self) -> dict:
+        """Dictionary representation of the object"""
         return {
             "id": self.id,
             "name": self.name,
@@ -22,17 +31,19 @@ class Amenity(Base):
 
     @staticmethod
     def create(data: dict) -> "Amenity":
-        from src.persistence import db
+        """Create a new amenity"""
+        from src.persistence import repo
 
         amenity = Amenity(**data)
 
-        db.save(amenity)
+        repo.save(amenity)
 
         return amenity
 
     @staticmethod
     def update(amenity_id: str, data: dict) -> "Amenity | None":
-        from src.persistence import db
+        """Update an existing amenity"""
+        from src.persistence import repo
 
         amenity: Amenity | None = Amenity.get(amenity_id)
 
@@ -42,25 +53,30 @@ class Amenity(Base):
         if "name" in data:
             amenity.name = data["name"]
 
-        db.update(amenity)
+        repo.update(amenity)
 
         return amenity
 
 
 class PlaceAmenity(Base):
+    """PlaceAmenity representation"""
+
     place_id: str
     amenity_id: str
 
     def __init__(self, place_id: str, amenity_id: str, **kw) -> None:
+        """Dummy init"""
         super().__init__(**kw)
 
         self.place_id = place_id
         self.amenity_id = amenity_id
 
     def __repr__(self) -> str:
-        return f"<PlaceAmenity {self.id} ({self.place_id} - {self.amenity_id})>"
+        """Dummy repr"""
+        return f"<PlaceAmenity ({self.place_id} - {self.amenity_id})>"
 
     def to_dict(self) -> dict:
+        """Dictionary representation of the object"""
         return {
             "id": self.id,
             "place_id": self.place_id,
@@ -70,10 +86,11 @@ class PlaceAmenity(Base):
         }
 
     @staticmethod
-    def get(place_id: str, amenity_id: str) -> "PlaceAmenity | None":  # type: ignore
-        from src.persistence import db
+    def get(place_id: str, amenity_id: str) -> "PlaceAmenity | None":
+        """Get a PlaceAmenity object by place_id and amenity_id"""
+        from src.persistence import repo
 
-        place_amenities: list[PlaceAmenity] = db.get_all("placeamenity")
+        place_amenities: list[PlaceAmenity] = repo.get_all("placeamenity")
 
         for place_amenity in place_amenities:
             if (
@@ -86,26 +103,32 @@ class PlaceAmenity(Base):
 
     @staticmethod
     def create(data: dict) -> "PlaceAmenity":
-        from src.persistence import db
+        """Create a new PlaceAmenity object"""
+        from src.persistence import repo
 
         new_place_amenity = PlaceAmenity(**data)
 
-        db.save(new_place_amenity)
+        repo.save(new_place_amenity)
 
         return new_place_amenity
 
     @staticmethod
-    def delete(place_id: str, amenity_id: str) -> bool:  # type: ignore
-        from src.persistence import db
+    def delete(place_id: str, amenity_id: str) -> bool:
+        """Delete a PlaceAmenity object by place_id and amenity_id"""
+        from src.persistence import repo
 
-        place_amenity: PlaceAmenity | None = PlaceAmenity.get(place_id, amenity_id)
+        place_amenity = PlaceAmenity.get(place_id, amenity_id)
 
         if not place_amenity:
             return False
 
-        db.delete(place_amenity)
+        repo.delete(place_amenity)
 
         return True
 
     @staticmethod
-    def update(entity_id: str, data: dict): ...
+    def update(entity_id: str, data: dict):
+        """Not implemented, isn't needed"""
+        raise NotImplementedError(
+            "This method is defined only because of the Base class"
+        )

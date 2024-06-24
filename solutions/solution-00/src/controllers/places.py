@@ -1,14 +1,20 @@
+"""
+Places controller module
+"""
+
 from flask import abort, request
 from src.models.place import Place
 
 
 def get_places():
+    """Returns all places"""
     places: list[Place] = Place.get_all()
 
     return [place.to_dict() for place in places], 200
 
 
 def create_place():
+    """Creates a new place"""
     data = request.get_json()
 
     try:
@@ -22,6 +28,7 @@ def create_place():
 
 
 def get_place_by_id(place_id: str):
+    """Returns a place by ID"""
     place: Place | None = Place.get(place_id)
 
     if not place:
@@ -31,6 +38,7 @@ def get_place_by_id(place_id: str):
 
 
 def update_place(place_id: str):
+    """Updates a place by ID"""
     data = request.get_json()
 
     try:
@@ -45,6 +53,7 @@ def update_place(place_id: str):
 
 
 def delete_place(place_id: str):
+    """Deletes a place by ID"""
     if not Place.delete(place_id):
         abort(404, f"Place with ID {place_id} not found")
 

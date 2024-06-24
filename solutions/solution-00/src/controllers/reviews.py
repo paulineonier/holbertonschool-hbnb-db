@@ -1,14 +1,20 @@
+"""
+Reviews controller module
+"""
+
 from flask import abort, request
 from src.models.review import Review
 
 
 def get_reviews():
+    """Returns all reviews"""
     reviews = Review.get_all()
 
     return [review.to_dict() for review in reviews], 200
 
 
 def create_review(place_id: str):
+    """Creates a new review"""
     data = request.get_json()
 
     if "user_id" not in data:
@@ -25,18 +31,25 @@ def create_review(place_id: str):
 
 
 def get_reviews_from_place(place_id: str):
+    """Returns all reviews from a specific place"""
     reviews = Review.get_all()
 
-    return [review.to_dict() for review in reviews if review.place_id == place_id], 200
+    return [
+        review.to_dict() for review in reviews if review.place_id == place_id
+    ], 200
 
 
 def get_reviews_from_user(user_id: str):
+    """Returns all reviews from a specific user"""
     reviews = Review.get_all()
 
-    return [review.to_dict() for review in reviews if review.user_id == user_id], 200
+    return [
+        review.to_dict() for review in reviews if review.user_id == user_id
+    ], 200
 
 
 def get_review_by_id(review_id: str):
+    """Returns a review by ID"""
     review: Review | None = Review.get(review_id)
 
     if not review:
@@ -46,6 +59,7 @@ def get_review_by_id(review_id: str):
 
 
 def update_review(review_id: str):
+    """Updates a review by ID"""
     data = request.get_json()
 
     try:
@@ -60,6 +74,7 @@ def update_review(review_id: str):
 
 
 def delete_review(review_id: str):
+    """Deletes a review by ID"""
     if not Review.delete(review_id):
         abort(404, f"Review with ID {review_id} not found")
 
