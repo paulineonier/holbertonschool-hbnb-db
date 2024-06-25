@@ -1,61 +1,43 @@
-import os
+""" Initialize the Flask app """
+
 from flask import Flask
-from flask_cors import CORS
-from flask_sqlalchemy import SQLAlchemy
-from dotenv import load_dotenv
-from src.config import DevelopmentConfig, ProductionConfig, TestingConfig
+from .extensions import cors, db
 from src.persistence.data_manager import DataManager
+from flask import Flask
+from .config import DevelopmentConfig
+from .routes import register_routes
 
-# Charger les variables d'environnement depuis le fichier .env
-load_dotenv()
-
-cors = CORS()
-db = SQLAlchemy()
-
-def get_config_class():
-    """Détermine la configuration à utiliser en fonction des variables d'environnement"""
-    env = os.getenv('FLASK_ENV', 'development')
-    if env == 'production':
-        return ProductionConfig
-    elif env == 'testing':
-        return TestingConfig
-    else:
-        return DevelopmentConfig
-
-def create_app(config_class=None) -> Flask:
+def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
     """
     Create a Flask app with the given configuration class.
-    The default configuration class is determined by the FLASK_ENV environment variable.
+    The default configuration class is DevelopmentConfig.
     """
-    if config_class is None:
-        config_class = get_config_class()
-    
     app = Flask(__name__)
     app.url_map.strict_slashes = False
     app.config.from_object(config_class)
-    
-    # Initialiser le gestionnaire de données en fonction de la configuration
+
+    # Initialize extensions
+    initialize_extensions(app)
+
     data_manager = DataManager(use_database=app.config['USE_DATABASE'])
 
-    register_extensions(app)
     register_routes(app)
     register_handlers(app)
 
     return app
 
-def register_extensions(app: Flask) -> None:
-    """Register the extensions for the Flask app"""
+def initialize_extensions(app: Flask) -> None:
+    """Initialize Flask extensions"""
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
     db.init_app(app)
-    # Further extensions can be added here
+    # Other extensions initialization can be added here
 
     # Create tables if they don't exist (only for development purposes)
     with app.app_context():
-        if not app.config['USE_DATABASE']:
-            db.create_all()
+        db.create_all()
 
 def register_routes(app: Flask) -> None:
-    """Import and register the routes for the Flask app"""
+    """Register the routes for the Flask app"""
 
     # Import the routes here to avoid circular imports
     from src.routes.users import users_bp
@@ -75,12 +57,10 @@ def register_routes(app: Flask) -> None:
 
 def register_handlers(app: Flask) -> None:
     """Register the error handlers for the Flask app."""
-    app.errorhandler(404)(lambda e: (
-        {"error": "Not found", "message": str(e)}, 404
-    )
-    )
-    app.errorhandler(400)(
-        lambda e: (
-            {"error": "Bad request", "message": str(e)}, 400
-        )
-    )
+    @app.errorhandler(404)
+    def handle_not_found_error(e):
+        return {"error": "Not found", "message": str(e)}, 404
+
+    @app.errorhandler(400)
+    def handle_bad_request_error(e):
+        return {"error": "Bad request", "message": str(e)}, 400
