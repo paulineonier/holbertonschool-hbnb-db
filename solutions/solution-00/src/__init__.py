@@ -2,10 +2,10 @@
 
 from flask import Flask
 from .extensions import cors, db
-from src.persistence.data_manager import DataManager
-from flask import Flask
 from .config import DevelopmentConfig
+from src.persistence.data_manager import DataManager
 from .routes import register_routes
+
 
 def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
     """
@@ -32,6 +32,14 @@ def initialize_extensions(app: Flask) -> None:
     db.init_app(app)
     # Other extensions initialization can be added here
 
+
+    from src.models.city import City
+    from src.models.country import Country
+    from src.models.place import Place
+    from src.models.review import Review
+    from src.models.amenity import Amenity
+
+
     # Create tables if they don't exist (only for development purposes)
     with app.app_context():
         db.create_all()
@@ -44,8 +52,8 @@ def register_routes(app: Flask) -> None:
     from src.routes.countries import countries_bp
     from src.routes.cities import cities_bp
     from src.routes.places import places_bp
-    from src.routes.amenities import amenities_bp
     from src.routes.reviews import reviews_bp
+    from src.routes.amenities import amenities_bp
 
     # Register the blueprints in the app
     app.register_blueprint(users_bp)
