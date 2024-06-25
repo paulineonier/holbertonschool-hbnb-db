@@ -20,7 +20,7 @@ class Config(ABC):
     DEBUG = False
     TESTING = False
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    USE_DATABASE = False
+    USE_DATABASE = os.getenv('USE_DATABASE', 'False') == 'True'
 
 
 class DevelopmentConfig(Config):
@@ -39,7 +39,7 @@ class DevelopmentConfig(Config):
     ```
     """
      DEBUG = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite:///development.db'
+    SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///development.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 class TestingConfig(Config):
@@ -78,9 +78,9 @@ class ProductionConfig(Config):
     )
 
 
-# Configuration spécifique à SQLAlchemy
 class SQLAlchemyConfig(Config):
     """
     Configuration spécifique à SQLAlchemy
     """
     USE_DATABASE = True
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
