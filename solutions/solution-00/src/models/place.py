@@ -4,10 +4,9 @@ Place related functionality
 
 from src import db  # Importez db depuis votre package source
 from src.models.city import City
-from src.models.user import User
+from src.models.base import Base
 
-
-class Place(db.Model):
+class Place(Base):
     """Place representation"""
 
     __tablename__ = 'places'  # Nom de la table dans la base de données
