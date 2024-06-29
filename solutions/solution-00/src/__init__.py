@@ -1,11 +1,14 @@
-""" Initialize the Flask app """
-
-from flask import Flask
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+from flask_bcrypt import Bcrypt
 from .extensions import cors, db
 from .config import DevelopmentConfig
 from src.persistence.data_manager import DataManager
 from .routes import register_routes
 
+bcrypt = Bcrypt()
+jwt = JWTManager()
 
 def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
     """
@@ -30,15 +33,16 @@ def initialize_extensions(app: Flask) -> None:
     """Initialize Flask extensions"""
     cors.init_app(app, resources={r"/api/*": {"origins": "*"}})
     db.init_app(app)
+    bcrypt.init_app(app)
+    jwt.init_app(app)
     # Other extensions initialization can be added here
-
 
     from src.models.city import City
     from src.models.country import Country
     from src.models.place import Place
     from src.models.review import Review
     from src.models.amenity import Amenity
-
+    from src.models.user import User
 
     # Create tables if they don't exist (only for development purposes)
     with app.app_context():
@@ -62,6 +66,26 @@ def register_routes(app: Flask) -> None:
     app.register_blueprint(places_bp)
     app.register_blueprint(reviews_bp)
     app.register_blueprint(amenities_bp)
+
+    # Register the login route
+    @app.route('/login', methods=['POST'])
+    def login():
+        email = request.json.get('email', None)
+        password = request.json.get('password', None)
+        user = User.query.filter_by(email=email).first()
+
+        if user and user.check_password(password):
+            access_token = create_access_token(identity=user.id)
+            return jsonify(access_token=access_token), 200
+        return jsonify({"msg": "Email ou mot de passe incorrect"}), 401
+
+    # Example of a protected route
+    @app.route('/protected', methods=['GET'])
+    @jwt_required()
+    def protected():
+        current_user_id = get_jwt_identity()
+        user = User.query.get(current_user_id)
+        return jsonify(logged_in_as=user.email), 200
 
 def register_handlers(app: Flask) -> None:
     """Register the error handlers for the Flask app."""
