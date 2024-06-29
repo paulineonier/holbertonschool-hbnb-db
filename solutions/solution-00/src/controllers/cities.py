@@ -1,60 +1,39 @@
-"""
-Cities controller module
-"""
-
-from flask import request, abort
+from flask import request, jsonify
 from src.models.city import City
-
-
-def get_cities():
-    """Returns all cities"""
-    cities: list[City] = City.get_all()
-
-    return [city.to_dict() for city in cities]
-
+from src import db
 
 def create_city():
-    """Creates a new city"""
+    """Create a new city"""
     data = request.get_json()
+    new_city = City.create(data)
+    return jsonify(new_city.to_dict()), 201
 
-    try:
-        city = City.create(data)
-    except KeyError as e:
-        abort(400, f"Missing field: {e}")
-    except ValueError as e:
-        abort(400, str(e))
+def get_cities():
+    """Get all cities"""
+    cities = City.query.all()
+    return jsonify([city.to_dict() for city in cities]), 200
 
-    return city.to_dict(), 201
+def get_city_by_id(city_id):
+    """Get city by ID"""
+    city = City.query.get(city_id)
+    if city is None:
+        return jsonify({"msg": "City not found"}), 404
+    return jsonify(city.to_dict()), 200
 
-
-def get_city_by_id(city_id: str):
-    """Returns a city by ID"""
-    city: City | None = City.get(city_id)
-
-    if not city:
-        abort(404, f"City with ID {city_id} not found")
-
-    return city.to_dict()
-
-
-def update_city(city_id: str):
-    """Updates a city by ID"""
+def update_city(city_id):
+    """Update an existing city"""
     data = request.get_json()
+    updated_city = City.update(city_id, data)
+    if updated_city is None:
+        return jsonify({"msg": "City not found"}), 404
+    return jsonify(updated_city.to_dict()), 200
 
-    try:
-        city: City | None = City.update(city_id, data)
-    except ValueError as e:
-        abort(400, str(e))
+def delete_city(city_id):
+    """Delete a city"""
+    city = City.query.get(city_id)
+    if city is None:
+        return jsonify({"msg": "City not found"}), 404
 
-    if not city:
-        abort(404, f"City with ID {city_id} not found")
-
-    return city.to_dict()
-
-
-def delete_city(city_id: str):
-    """Deletes a city by ID"""
-    if not City.delete(city_id):
-        abort(404, f"City with ID {city_id} not found")
-
-    return "", 204
+    db.session.delete(city)
+    db.session.commit()
+    return jsonify({"msg": "City deleted"}), 200

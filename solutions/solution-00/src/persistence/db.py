@@ -11,33 +11,48 @@
     - delete
     - reload (which can be empty)
 """
-
 from src.models.base import Base
 from src.persistence.repository import Repository
-
+from src import db  # Importer SQLAlchemy instance de src/__init__.py
 
 class DBRepository(Repository):
-    """Dummy DB repository"""
+    """Implementation of the Repository interface for a database using SQLAlchemy."""
 
     def __init__(self) -> None:
-        """Not implemented"""
+        """Initialize the DBRepository."""
+        self.session = db.session
 
     def get_all(self, model_name: str) -> list:
-        """Not implemented"""
-        return []
+        """Get all records of a given model."""
+        model_class = Base._decl_class_registry.get(model_name, None)
+        if model_class is None:
+            raise ValueError(f"Model {model_name} does not exist.")
+        return self.session.query(model_class).all()
 
     def get(self, model_name: str, obj_id: str) -> Base | None:
-        """Not implemented"""
-
-    def reload(self) -> None:
-        """Not implemented"""
+        """Get a single record by its ID."""
+        model_class = Base._decl_class_registry.get(model_name, None)
+        if model_class is None:
+            raise ValueError(f"Model {model_name} does not exist.")
+        return self.session.query(model_class).get(obj_id)
 
     def save(self, obj: Base) -> None:
-        """Not implemented"""
+        """Save a new record to database."""
+        self.session.add(obj)
+        self.session.commit()
 
     def update(self, obj: Base) -> Base | None:
-        """Not implemented"""
+        """Update an existing record in the database."""
+        self.session.merge(obj)
+        self.session.commit()
+        return obj
 
     def delete(self, obj: Base) -> bool:
-        """Not implemented"""
-        return False
+        """Delete a record frm the dtabase."""
+        self.session.delete(obj)
+        self.session.commit()
+        return True
+
+    def reload(self) -> None:
+        """Reload the database session."""
+        self.session.expire_all()

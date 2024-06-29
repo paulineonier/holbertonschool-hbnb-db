@@ -2,14 +2,14 @@
 Place related functionality
 """
 
-from src import db  # Importez db depuis votre package source
+from src import db
 from src.models.city import City
 from src.models.base import Base
 
 class Place(Base):
     """Place representation"""
 
-    __tablename__ = 'places'  # Nom de la table dans la base de données
+    __tablename__ = 'places'
 
     id = db.Column(db.String(36), primary_key=True)
     name = db.Column(db.String(255), nullable=False)

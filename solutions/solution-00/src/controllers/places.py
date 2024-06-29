@@ -1,60 +1,28 @@
-"""
-Places controller module
-"""
-
-from flask import abort, request
 from src.models.place import Place
 
-
 def get_places():
-    """Returns all places"""
-    places: list[Place] = Place.get_all()
-
-    return [place.to_dict() for place in places], 200
-
+    """Get all places"""
+    places = Place.query.all()
+    return jsonify([place.to_dict() for place in places]), 200
 
 def create_place():
-    """Creates a new place"""
-    data = request.get_json()
+    """Create a new place"""
+    # Implement your logic to create a place
+    return jsonify({"msg": "Create place endpoint"}), 200
 
-    try:
-        place = Place.create(data)
-    except KeyError as e:
-        abort(400, f"Missing field: {e}")
-    except ValueError as e:
-        abort(404, str(e))
+def get_place_by_id(place_id):
+    """Get place by ID"""
+    place = Place.query.get(place_id)
+    if place is None:
+        return jsonify({"msg": "Place not found"}), 404
+    return jsonify(place.to_dict()), 200
 
-    return place.to_dict(), 201
+def update_place(place_id):
+    """Update place by ID"""
+    # Implement your logic to update a place
+    return jsonify({"msg": f"Update place {place_id} endpoint"}), 200
 
-
-def get_place_by_id(place_id: str):
-    """Returns a place by ID"""
-    place: Place | None = Place.get(place_id)
-
-    if not place:
-        abort(404, f"Place with ID {place_id} not found")
-
-    return place.to_dict(), 200
-
-
-def update_place(place_id: str):
-    """Updates a place by ID"""
-    data = request.get_json()
-
-    try:
-        place: Place | None = Place.update(place_id, data)
-    except ValueError as e:
-        abort(400, str(e))
-
-    if not place:
-        abort(404, f"Place with ID {place_id} not found")
-
-    return place.to_dict(), 200
-
-
-def delete_place(place_id: str):
-    """Deletes a place by ID"""
-    if not Place.delete(place_id):
-        abort(404, f"Place with ID {place_id} not found")
-
-    return "", 204
+def delete_place(place_id):
+    """Delete place by ID"""
+    # Implement your logic to delete a place
+    return jsonify({"msg": f"Delete place {place_id} endpoint"}), 200

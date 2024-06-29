@@ -2,7 +2,7 @@
 City related functionality
 """
 
-from src import db  # Importez db depuis votre package source
+from src.extensions import db
 from src.models.base import Base
 from src.models.country import Country
 

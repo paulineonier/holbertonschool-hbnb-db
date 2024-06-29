@@ -1,57 +1,39 @@
-"""
-Amenity controller module
-"""
-
-from flask import abort, request
+from flask import request, jsonify
 from src.models.amenity import Amenity
-
-
-def get_amenities():
-    """Returns all amenities"""
-    amenities: list[Amenity] = Amenity.get_all()
-
-    return [amenity.to_dict() for amenity in amenities]
-
+from src import db
 
 def create_amenity():
-    """Creates a new amenity"""
+    """Create a new amenity"""
     data = request.get_json()
+    new_amenity = Amenity.create(data)
+    return jsonify(new_amenity.to_dict()), 201
 
-    try:
-        amenity = Amenity.create(data)
-    except KeyError as e:
-        abort(400, f"Missing field: {e}")
-    except ValueError as e:
-        abort(400, str(e))
+def get_amenities():
+    """Get all amenities"""
+    amenities = Amenity.query.all()
+    return jsonify([amenity.to_dict() for amenity in amenities]), 200
 
-    return amenity.to_dict(), 201
+def get_amenity_by_id(amenity_id):
+    """Get amenity by ID"""
+    amenity = Amenity.query.get(amenity_id)
+    if amenity is None:
+        return jsonify({"msg": "Amenity not found"}), 404
+    return jsonify(amenity.to_dict()), 200
 
-
-def get_amenity_by_id(amenity_id: str):
-    """Returns a amenity by ID"""
-    amenity: Amenity | None = Amenity.get(amenity_id)
-
-    if not amenity:
-        abort(404, f"Amenity with ID {amenity_id} not found")
-
-    return amenity.to_dict()
-
-
-def update_amenity(amenity_id: str):
-    """Updates a amenity by ID"""
+def update_amenity(amenity_id):
+    """Update an existing amenity"""
     data = request.get_json()
+    updated_amenity = Amenity.update(amenity_id, data)
+    if updated_amenity is None:
+        return jsonify({"msg": "Amenity not found"}), 404
+    return jsonify(updated_amenity.to_dict()), 200
 
-    updated_amenity: Amenity | None = Amenity.update(amenity_id, data)
+def delete_amenity(amenity_id):
+    """Delete an amenity"""
+    amenity = Amenity.query.get(amenity_id)
+    if amenity is None:
+        return jsonify({"msg": "Amenity not found"}), 404
 
-    if not updated_amenity:
-        abort(404, f"Amenity with ID {amenity_id} not found")
-
-    return updated_amenity.to_dict()
-
-
-def delete_amenity(amenity_id: str):
-    """Deletes a amenity by ID"""
-    if not Amenity.delete(amenity_id):
-        abort(404, f"Amenity with ID {amenity_id} not found")
-
-    return "", 204
+    db.session.delete(amenity)
+    db.session.commit()
+    return jsonify({"msg": "Amenity deleted"}), 200

@@ -38,7 +38,7 @@ class DevelopmentConfig(Config):
         # Do something
     ```
     """
-     DEBUG = True
+    DEBUG = True
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL', 'sqlite:///development.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 

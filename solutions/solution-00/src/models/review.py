@@ -1,8 +1,7 @@
 """
 Review related functionality
 """
-
-from src import db  # Importez db depuis votre package source
+from src import db
 from src.models.user import User
 from src.models.place import Place
 
@@ -10,7 +9,7 @@ from src.models.place import Place
 class Review(db.Model):
     """Review representation"""
 
-    __tablename__ = 'reviews'  # Nom de la table dans la base de données
+    __tablename__ = 'reviews'
 
     id = db.Column(db.String(36), primary_key=True)
     place_id = db.Column(db.String(36), db.ForeignKey('places.id'), nullable=False)
@@ -21,6 +20,7 @@ class Review(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
 
     user = db.relationship('User', backref=db.backref('reviews', lazy=True))
+
     place = db.relationship('Place', backref=db.backref('reviews', lazy=True))
 
     def __init__(self, place_id: str, user_id: str, comment: str, rating: float, **kwargs) -> None:
@@ -32,9 +32,8 @@ class Review(db.Model):
         self.comment = comment
         self.rating = rating
 
-    def __repr__(self) -> str:
-        """Représentation sous forme de chaîne de la critique"""
-        return f"<Review {self.id} - '{self.comment[:25]}...'>"
+    def __repr__(self):
+        return f"<Review {self.id}>"
 
     def to_dict(self) -> dict:
         """Retourne la représentation de l'objet sous forme de dictionnaire"""

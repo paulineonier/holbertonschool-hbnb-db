@@ -6,7 +6,7 @@ import uuid
 from abc import ABC, abstractmethod
 from src import db
 
-class Base(ABC, db.Model):
+class Base:
     """
     Base Interface for all models
     """

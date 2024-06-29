@@ -3,6 +3,7 @@ Country related functionality
 """
 
 from src import db  # Importez db depuis votre package source
+from src.models.base import Base
 
 
 class Country(db.Model):
