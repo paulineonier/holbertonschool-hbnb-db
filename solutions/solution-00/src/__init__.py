@@ -18,6 +18,11 @@ def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
     app = Flask(__name__)
     app.url_map.strict_slashes = False
     app.config.from_object(config_class)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://username:password@mysql-hostname:port/database_name'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.secret_key = 'your_secret_key'
+
+    db = SQLAlchemy(app)
 
     # Initialize extensions
     initialize_extensions(app)
@@ -28,6 +33,13 @@ def create_app(config_class="src.config.DevelopmentConfig") -> Flask:
     register_handlers(app)
 
     return app
+
+@app.route('/')
+def index():
+    return 'Hello, Flask with MySQL!'
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 def initialize_extensions(app: Flask) -> None:
     """Initialize Flask extensions"""

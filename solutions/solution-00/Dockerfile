@@ -4,8 +4,15 @@ WORKDIR /app
 
 COPY requirements.txt /tmp/requirements.txt
 
-RUN pip install --no-cache-dir -r /tmp/requirements.txt \
-  && rm -rf /tmp
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+     gcc \
+     musl-dev \
+     postgresql-client \
+  && pip install --no-cache-dir -r /tmp/requirements.txt \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /tmp/*
 
 COPY . .
 

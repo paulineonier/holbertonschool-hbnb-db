@@ -20,13 +20,11 @@ class Review(db.Model):
     updated_at = db.Column(db.DateTime, onupdate=db.func.current_timestamp())
 
     user = db.relationship('User', backref=db.backref('reviews', lazy=True))
-
     place = db.relationship('Place', backref=db.backref('reviews', lazy=True))
 
     def __init__(self, place_id: str, user_id: str, comment: str, rating: float, **kwargs) -> None:
         """Initialisation d'une critique"""
         super().__init__(**kwargs)
-
         self.place_id = place_id
         self.user_id = user_id
         self.comment = comment
@@ -47,27 +45,30 @@ class Review(db.Model):
             "updated_at": self.updated_at.isoformat(),
         }
 
+
     @staticmethod
     def create(data: dict) -> "Review":
         """Crée une nouvelle critique"""
-        new_review = Review(**data)
-
-        db.session.add(new_review)
-        db.session.commit()
-
-        return new_review
+        try:
+            new_review = Review(**data)
+            db.session.add(new_review)
+            db.session.commit()
+            return new_review
+        except Exception as e:
+            db.session.rollback()
+            raise e
 
     @staticmethod
     def update(review_id: str, data: dict) -> "Review | None":
         """Met à jour une critique existante"""
-        review = Review.query.get(review_id)
-
-        if not review:
-            return None
-
-        for key, value in data.items():
-            setattr(review, key, value)
-
-        db.session.commit()
-
-        return review
+        try:
+            review = Review.query.get(review_id)
+            if not review:
+                return None
+            for key, value in data.items():
+                setattr(review, key, value)
+            db.session.commit()
+            return review
+        except Exception as e:
+            db.session.rollback()
+            raise e
